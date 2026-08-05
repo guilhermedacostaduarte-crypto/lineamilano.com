@@ -223,14 +223,14 @@
             font-size: 22px;
         }
 
-        /* Barra de Informações de Pagamento (Frete removido da home) */
+        /* Barra de Informações de Pagamento */
         .info-bar-container {
             background-color: var(--cor-fundo);
             padding: 40px 20px;
         }
 
         .info-bar {
-            max-width: 800px; /* Reduzido o max-width para centrar melhor só os pagamentos */
+            max-width: 800px; 
             margin: 0 auto;
             background: #ffffff;
             padding: 30px;
@@ -297,6 +297,13 @@
             padding: 10px 20px;
             border-radius: 4px;
             cursor: pointer;
+        }
+
+        #cep-message {
+            display: block;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 500;
         }
 
         /* Secção Projetos Personalizados */
@@ -417,7 +424,7 @@
         .product-card img {
             width: 100%;
             height: 200px;
-            object-fit: cover;
+            object-fit: contain; 
             border-radius: 6px;
             margin-bottom: 15px;
             background: #f4f4f4;
@@ -790,14 +797,15 @@
                     </div>
                 </div>
                 
-                <!-- SIMULADOR DE FRETE MOVIDO PARA AQUI -->
+                <!-- SIMULADOR DE FRETE NO PRODUTO (Com Validação Marília) -->
                 <div class="cep-box-produto" style="border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px;">
                     <h3>Simule sua Entrega</h3>
                     <div class="cep-form">
-                        <input type="text" placeholder="CEP">
-                        <button>Calcular</button>
+                        <input type="text" id="input-cep-produto" placeholder="Digite seu CEP" maxlength="9">
+                        <button onclick="calcularFrete()">Calcular</button>
                     </div>
-                    <p style="font-size:11px; margin-top:5px; color: var(--cor-texto-claro);"><strong>Frete grátis para Região de Marília-SP</strong> | Não fazemos montagem.</p>
+                    <!-- Nova Div para as mensagens dinâmicas de erro/sucesso do CEP -->
+                    <div id="cep-message" style="margin-top: 10px; font-size: 13px; font-weight: 500;"></div>
                 </div>
 
                 <!-- BOTÕES -->
@@ -1457,6 +1465,29 @@
             document.getElementById('prod-price-inst').innerHTML = infoParcelas;
         }
 
+        // Nova Função: Calcular Frete Validando CEP de Marília
+        function calcularFrete() {
+            var cepInput = document.getElementById("input-cep-produto").value;
+            // Limpa o CEP tirando traços e espaços
+            var cepLimpo = cepInput.replace(/\D/g, '');
+            var mensagemArea = document.getElementById("cep-message");
+
+            if (cepLimpo.length !== 8) {
+                mensagemArea.style.color = "red";
+                mensagemArea.innerHTML = "⚠️ Por favor, introduza um CEP válido com 8 dígitos.";
+                return;
+            }
+
+            // Verifica se o CEP começa por 175 (Região de Marília)
+            if (cepLimpo.startsWith("175")) {
+                mensagemArea.style.color = "#25d366"; // Verde
+                mensagemArea.innerHTML = "✅ <strong>Frete Grátis!</strong> Prazo de entrega estimado: 15 a 25 dias.";
+            } else {
+                mensagemArea.style.color = "red";
+                mensagemArea.innerHTML = "⚠️ No momento, as nossas entregas são exclusivas para a Região de Marília-SP.";
+            }
+        }
+
         // Abre os Detalhes do Produto 
         function openProduct(index) {
             var produtosCategoria = produtos.filter(p => p.categoria === currentCategoryName);
@@ -1465,25 +1496,24 @@
             document.getElementById('prod-breadcrumb').innerText = `Home > ${currentCategoryName} > ${currentProduct.nome}`;
             document.getElementById('prod-title').innerText = currentProduct.nome;
             
+            // Limpa mensagem do frete a cada novo produto aberto
+            document.getElementById("cep-message").innerHTML = "";
+            document.getElementById("input-cep-produto").value = "";
+            
             // Verifica se o produto é "Sob Consulta" (preço zero)
             var isSobConsulta = (currentProduct.precoVista === 0);
 
             if (isSobConsulta) {
-                // Esconde a área de preços normais e botões de compra
                 document.getElementById("preco-area").style.display = "none";
                 document.getElementById("botoes-compra").style.display = "none";
-                // Mostra a área "Sob Consulta" e botão do Whatsapp
                 document.getElementById("consulta-area").style.display = "block";
                 document.getElementById("botoes-consulta").style.display = "block";
             } else {
-                // Mostra os preços normais e botões de compra
                 document.getElementById("preco-area").style.display = "block";
                 document.getElementById("botoes-compra").style.display = "block";
-                // Esconde "Sob Consulta"
                 document.getElementById("consulta-area").style.display = "none";
                 document.getElementById("botoes-consulta").style.display = "none";
                 
-                // Configura o dropdown normal
                 var select = document.getElementById("select-parcelas");
                 select.innerHTML = `
                     <option value="vista">À vista no PIX (Desconto Aplicado)</option>
